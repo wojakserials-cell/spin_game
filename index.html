@@ -2,95 +2,321 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Money Crash Hard</title>
+  <title>Cyber Crash</title>
   <style>
-    body { margin: 0; padding: 0; font-family: sans-serif; overflow: hidden; background: #fff; }
-    
-    /* ЭКРАН 1 */
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+    :root {
+      --bg-color: #0f0c29;
+      --accent-blue: #00f2ff;
+      --danger-red: #ff2e63;
+      --gold: #ffd700;
+      --panel-bg: rgba(15, 12, 41, 0.85);
+      --text-main: #ffffff;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Orbitron', sans-serif;
+      background-color: var(--bg-color);
+      overflow: hidden;
+      color: var(--text-main);
+    }
+
+    /* --- АНИМАЦИЯ ФОНА (ЧАСТИЦЫ) --- */
+    .particle {
+      position: absolute;
+      top: 0; left: 0;
+      width: 4px; height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      animation: float 10s infinite linear;
+      z-index: 0;
+    }
+    @keyframes float {
+      0% { transform: translateY(0) translateX(0); opacity: 0.5; }
+      50% { opacity: 0.1; }
+      100% { transform: translateY(-100vh) translateX(50vw); opacity: 0.5; }
+    }
+
+    /* --- ЭКРАН 1 (СТАРТ) --- */
     #start-screen {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: linear-gradient(135deg, #2b1a3e 0%, #4a2a6a 100%);
-      display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff;
+      position: relative;
+      z-index: 10;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: radial-gradient(circle at center, #1a153f 0%, #0f0c29 100%);
     }
-    .start-title { font-size: 32px; font-weight: bold; margin-bottom: 40px; text-shadow: 0 0 15px rgba(255,255,255,0.4); }
-    .crash-btn-main { padding: 20px 40px; font-size: 24px; font-weight: bold; background: #fff; color: #2b1a3e; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 0 25px rgba(255,255,255,0.4); transition: transform 0.1s; }
-    .crash-btn-main:hover { transform: scale(1.05); }
+    h1 { font-size: 4rem; text-transform: uppercase; letter-spacing: 5px; margin: 0; text-shadow: 0 0 20px rgba(0, 242, 255, 0.6); }
+    .subtitle { font-size: 1.2rem; color: #aaa; margin-bottom: 40px; }
+    
+    .neo-btn {
+      padding: 20px 60px;
+      font-size: 1.5rem;
+      font-weight: 900;
+      background: transparent;
+      color: white;
+      border: 2px solid var(--accent-blue);
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .neo-btn::before {
+      content: '';
+      position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0,242,255,0.3), transparent);
+      transition: left 0.5s;
+    }
+    .neo-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 40px rgba(0, 242, 255, 0.8);
+      color: var(--accent-blue);
+    }
+    .neo-btn:hover::before { left: 100%; }
 
-    /* ЭКРАН 2 */
-    #game-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff; display: none; flex-direction: column; align-items: center; justify-content: center; }
-    #game { position: relative; width: 320px; height: 480px; border: 2px solid #ddd; background: #fff; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.15); }
-    
-    /* История */
-    #history-container { width: 100%; padding: 10px; background: #f8f9fa; border-bottom: 1px solid #eee; max-height: 120px; overflow-y: auto; font-size: 14px; color: #555; }
-    .history-item { margin: 4px 0; padding: 6px 10px; background: #fff; border-radius: 6px; border-left: 4px solid #007bff; }
-    
-    .btn { padding: 12px 24px; font-size: 16px; cursor: pointer; border: none; margin-top: 8px; border-radius: 8px; }
-    #bet-btn { background: #333; color: white; }
-    #cashout-btn { background: #28a745; color: white; display: none; }
+    /* --- ЭКРАН 2 (ИГРА) --- */
+    #game-screen {
+      display: none;
+      position: relative;
+      height: 100vh;
+      width: 100vw;
+      justify-content: center;
+      align-items: center;
+    }
 
-    #status { text-align: center; margin-bottom: 10px; font-weight: bold; color: #333; }
+    #game-panel {
+      width: 360px;
+      height: 580px;
+      background: var(--panel-bg);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 15px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(10px);
+      position: relative;
+    }
+
+    /* Верхняя панель */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    .balance-box { font-size: 1.2rem; font-weight: bold; color: var(--gold); }
+    .bet-display { font-size: 0.9rem; color: #888; }
+
+    /* Зона полёта (График + Рельс) */
+    #flight-zone {
+      flex-grow: 1;
+      position: relative;
+      background: rgba(0,0,0,0.4);
+      border-radius: 8px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      border: 1px solid rgba(0, 242, 255, 0.2);
+    }
     
+    /* Рельс (линия графика) */
+    .rail-line {
+      position: absolute;
+      bottom: 10px; left: 20px; right: 20px;
+      height: 2px;
+      background: rgba(255,255,255,0.2);
+      z-index: 1;
+    }
+    .rail-glow {
+      position: absolute;
+      bottom: 9px; left: 20px; height: 4px; background: linear-gradient(90deg, #00f2ff 0%, transparent 100%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Самолёт-болид */
+    .ship {
+      position: absolute;
+      left: 20px; bottom: 0;
+      width: 45px; height: 45px;
+      background: #fff;
+      clip-path: polygon(100% 50%, 70% 0, 50% 20%, 50% 80%, 70% 100%, 100% 50%);
+      transform-origin: left center;
+      animation: pulse 1s infinite alternate;
+      z-index: 3;
+      box-shadow: 0 0 15px rgba(0, 242, 255, 0.6);
+    }
+    .ship::after {
+      content: "";
+      position: absolute; right: -20px; top: 50%; transform: translateY(-50%);
+      width: 0; height: 0; border-left: 20px solid #fff; border-top: 10px solid transparent; border-bottom: 10px solid transparent;
+    }
+    /* Эффект следа */
+    .trail {
+      position: absolute; left: 20px; bottom: 10px; width: 0; height: 2px;
+      background: linear-gradient(to right, transparent, var(--accent-blue));
+      z-index: 2;
+    }
+
+    @keyframes pulse { 0% { filter: brightness(1); } 100% { filter: brightness(1.3); } }
+
+    /* Множитель */
     #multiplier-block {
-      font-size: 42px; color: #007bff; font-weight: bold; margin-bottom: 15px;
-      text-align: center; min-height: 60px;
+      font-size: 3.5rem;
+      font-weight: 900;
+      text-align: center;
+      min-height: 80px;
+      text-shadow: 0 0 20px rgba(0, 242, 255, 0.8);
+      margin-bottom: 10px;
     }
-    .win-message { color: #28a745 !important; font-size: 36px !important; animation: pulse 1s infinite alternate; }
-    @keyframes pulse { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
+    .win-text { color: var(--gold) !important; text-shadow: 0 0 30px rgba(255, 215, 0, 0.8) !important; }
 
-    #bet-input { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; text-align: right; }
-
-    /* Самолёт */
-    .money-plane {
-      position: absolute; left: 140px; bottom: 10px; width: 40px; height: 40px;
-      background: radial-gradient(circle at 20px 20px, #ffd700 0%, #d4af37 100%);
-      border-radius: 50%; box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-      display: flex; align-items: center; justify-content: center; color: #2c1e3e; font-size: 22px; font-weight: bold;
+    /* Ввод ставки */
+    input[type="number"] {
+      width: 100%; padding: 15px;
+      background: rgba(0,0,0,0.5); border: 1px solid #444; color: white;
+      font-size: 1.1rem; font-family: monospace; text-align: right;
+      border-radius: 8px; box-sizing: border-box;
+      outline: none;
     }
-    .money-plane::before, .money-plane::after {
-      content: ""; position: absolute; width: 30px; height: 20px;
-      background: rgba(255,255,255,0.7); border-radius: 15px;
-      filter: drop-shadow(0 0 5px rgba(255,255,255,0.8));
-      transform-origin: center bottom;
-    }
-    .money-plane::before { left: -18px; transform: rotate(-30deg); }
-    .money-plane::after { right: -18px; transform: rotate(30deg); }
+    input:focus { border-color: var(--accent-blue); }
 
+    /* Кнопки действий */
+    .action-buttons { display: flex; gap: 10px; margin-top: 10px; }
+    .btn-bet {
+      flex: 1; padding: 15px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;
+    }
+    .btn-cashout {
+      flex: 2; padding: 15px; background: var(--danger-red); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; display: none;
+      box-shadow: 0 0 15px rgba(255, 46, 99, 0.5);
+    }
+    .btn-cashout:hover { transform: scale(1.02); }
+
+    /* История */
+    #history-container {
+      max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 6px; color: #ccc; font-size: 0.8rem;
+    }
+    .hist-item { margin: 2px 0; padding: 4px 8px; background: rgba(255,255,255,0.05); border-radius: 4px; }
+    .crash-hist { color: var(--danger-red); }
+    .win-hist { color: var(--gold); }
+
+    /* Взрыв */
     .explosion {
-      position: absolute; width: 60px; height: 60px; border-radius: 50%;
-      pointer-events: none; animation: pop 0.4s forwards;
+      position: absolute; width: 80px; height: 80px; border-radius: 50%;
+      background: radial-gradient(circle, #ff0000 0%, #ffaa00 20%, transparent 50%);
+      pointer-events: none; animation: popAnim 0.5s forwards;
+      transform: translate(-50%, -50%) scale(0.5);
     }
-    @keyframes pop { 0% { transform: translate(-50%,-50%) scale(1); opacity: 1; } 100% { transform: translate(-50%,-50%) scale(2.5); opacity: 0; } }
+    @keyframes popAnim {
+      0% { transform: translate(-50%, -50%) scale(0.5) opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(2) opacity: 0; }
+    }
   </style>
 </head>
 <body>
 
   <!-- ЭКРАН 1 -->
   <div id="start-screen">
-    <div class="start-title">Spin Game</div>
-    <button id="enter-btn" class="crash-btn-main">Краш</button>
+    <h1>CYBER CRASH</h1>
+    <div class="subtitle">Рискни всем ради x100</div>
+    <button id="enter-btn" class="neo-btn">Войти в игру</button>
   </div>
 
   <!-- ЭКРАН 2 -->
   <div id="game-screen">
-    <div id="history-container">
-      <strong>История полётов:</strong>
-      <div id="history-list"></div>
-    </div>
-    <div id="game">
-      <div id="status">Баланс: <span id="balance">1000</span> ₽</div>
+    <div id="game-panel">
+      <div class="top-bar">
+        <div>Баланс</div>
+        <div class="balance-box"><span id="balance">1000</span> ₽</div>
+      </div>
+
+      <div id="flight-zone">
+        <!-- Рельс -->
+        <div class="rail-line"></div>
+        <div class="rail-glow" id="rail-progress"></div>
+        
+        <!-- След -->
+        <div class="trail" id="trail"></div>
+        
+        <!-- Корабль -->
+        <div class="ship" id="ship"></div>
+      </div>
+
       <div id="multiplier-block">x1.00</div>
+
       <input type="number" id="bet-input" placeholder="Ставка (макс. 2000)" min="1" max="2000">
-      <button id="bet-btn" class="btn">Принять ставку</button>
-      <button id="cashout-btn" class="btn">Забрать</button>
-      <div class="money-plane" id="plane">$</div>
+      
+      <div class="action-buttons">
+        <button id="bet-btn" class="btn-bet">Ставка</button>
+        <button id="cashout-btn" class="btn-cashout">ЗАБРАТЬ</button>
+      </div>
+
+      <div id="history-container">
+        <strong>История:</strong>
+        <div id="history-list"></div>
+      </div>
     </div>
   </div>
 
   <script>
-    // --- НАСТРОЙКИ БАЛАНСА ---
+    // --- НАСТРОЙКИ ---
     const BALANCE_START = 1000;
     const MAX_BET = 2000;
     
-    // ГЛАВНАЯ ФИШКА: Математика против фарма на 1.5
-    // Формула: Шанс = 0.08 + (Множитель * 0.06)
-    // На x1.0 шанс ~8%. На x1.5
+    // МАТЕМАТИКА (Анти-фарм): Шанс = 0.08 + (Mult * 0.07)
+    // На x1.5 шанс краша уже ~18.5%. Это гарантирует минус на дистанции при стратегии "только 1.5".
+    const BASE_CRASH_CHANCE = 0.08;      
+    const RISK_GROWTH_RATE = 0.07;       
+    const TARGET_CRASH_CHANCE = 0.40;   
+    const SPEED_BOOST = 1.12;           
+    
+    let balance = BALANCE_START;
+    let bet = 0;
+    let multiplier = 1.0;
+    let isRunning = false;
+    let speed = 3; // Чуть быстрее для динамики
+    let planePos = 0; // Позиция по вертикали (0-100%)
+    let frameId;
+
+    // Элементы
+    const startScreen = document.getElementById('start-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const enterBtn = document.getElementById('enter-btn');
+    const balanceEl = document.getElementById('balance');
+    const multBlock = document.getElementById('multiplier-block');
+    const betInput = document.getElementById('bet-input');
+    const ship = document.getElementById('ship');
+    const trail = document.getElementById('trail');
+    const railProgress = document.getElementById('rail-progress');
+    const betBtn = document.getElementById('bet-btn');
+    const cashoutBtn = document.getElementById('cashout-btn');
+    const historyList = document.getElementById('history-list');
+
+    enterBtn.onclick = () => {
+      startScreen.style.display = 'none';
+      gameScreen.style.display = 'flex';
+    };
+
+    function startGame() {
+      if (!isRunning && bet > 0) {
+        isRunning = true;
+        planePos = 0;
+        multiplier = 1.0;
+        speed = 3; 
+        multBlock.textContent = 'x' + multiplier.toFixed(1);
+        multBlock.className = ''; 
+        cashoutBtn.style.display = 'block';
+        betBtn.style.display = 'none';
+        betInput.
+
