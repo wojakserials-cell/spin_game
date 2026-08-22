@@ -1,19 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RODEO CRASH: GOLD RUSH</title>
+  <title>RODEO CRASH: FULL VERSION</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
     :root {
       --bg-color: #2c1b11;
-      --dirt-color: #5d3a2a;
       --gold-star: #ffd700;
       --red-danger: #ff4500;
       --panel-bg: rgba(44, 27, 17, 0.95);
-      --text-white: #fff;
       --wood-border: #8b7355;
+      --text-white: #fff;
     }
 
     body {
@@ -47,43 +47,80 @@
       100% { transform: translateY(-100vh) translateX(50vw); opacity: 0; }
     }
 
-    /* --- ЭКРАН 1 (СТАРТ) --- */
+    /* === ЭКРАН 1: ГЛАВНОЕ МЕНЮ === */
     #start-screen {
-      position: relative;
-      height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: center;
-      text-align: center;
+      align-items: center;
+      height: 100vh;
+      position: relative;
       z-index: 10;
+      text-align: center;
     }
-    h1 {
-      font-size: 40px;
+
+    h1.logo {
+      font-size: 60px;
       color: var(--gold-star);
-      text-shadow: 4px 4px 0px #000;
-      margin-bottom: 20px;
-      letter-spacing: 5px;
+      text-shadow: 4px 4px 0 #000;
+      letter-spacing: 10px;
+      margin-bottom: 50px;
+      text-transform: uppercase;
     }
-    .cowboy-btn {
-      padding: 15px 40px;
+
+    /* ПЛАШКА ИНВЕНТАРЯ (СВЕРХУ) */
+    #top-inv-btn {
+      width: 300px;
+      padding: 15px;
+      background: transparent;
+      border: 3px solid var(--wood-border);
+      border-radius: 20px; /* Закруглённые концы */
+      color: var(--gold-star);
       font-family: 'Press Start 2P', sans-serif;
       font-size: 16px;
-      background: transparent;
-      border: 3px solid var(--gold-star);
-      color: var(--gold-star);
       cursor: pointer;
       text-transform: uppercase;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+      margin-bottom: 40px;
       transition: all 0.3s;
-      box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
     }
-    .cowboy-btn:hover {
+    #top-inv-btn:hover {
       background: var(--gold-star);
       color: #000;
       transform: scale(1.05);
     }
 
-    /* --- ЭКРАН 2 (ИГРА) --- */
+    /* ПЛАШКА CRASH (СПРАВА ПО ЦЕНТРУ) */
+    #crash-trigger-wrapper {
+      position: absolute;
+      top: 50%;
+      right: 40px;
+      transform: translateY(-50%);
+      z-index: 20;
+    }
+    #right-crash-btn {
+      padding: 20px 15px;
+      background: #332211;
+      border: 2px solid var(--red-danger);
+      border-radius: 8px;
+      color: white;
+      font-family: 'Press Start 2P', sans-serif;
+      font-size: 24px;
+      cursor: pointer;
+      text-transform: uppercase;
+      writing-mode: vertical-rl; /* Вертикальный текст */
+      text-orientation: mixed;
+      line-height: 1;
+      box-shadow: 0 0 15px rgba(255, 69, 0, 0.5);
+      transition: transform 0.1s, box-shadow 0.2s;
+    }
+    #right-crash-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px rgba(255, 69, 0, 0.8);
+      background: var(--red-danger);
+    }
+
+    /* === ЭКРАН 2: ИГРА === */
     #game-screen {
       display: none;
       position: relative;
@@ -151,15 +188,13 @@
       z-index: 1;
     }
 
-    /* Бык (Пиксель арт SVG) */
+    /* Бык */
     .bull {
       position: absolute;
       left: 20px; bottom: 0;
       width: 50px; height: 50px;
-      /* Простая пиксельная графика быка */
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23FFD700' d='M16 2L18 6H22L24 10H28L30 14H32L30 18H26L24 22H20L18 26H14L12 22H8L6 18H4L2 14H0L2 10H4L6 6H10L12 2H16Z'/%3E%3Cpath fill='%23000' d='M14 8L16 10L18 8L16 12Z'/%3E%3C/svg%3E");
       background-size: contain;
-      background-repeat: no-repeat;
       z-index: 3;
       filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.8));
       transform-origin: center bottom;
@@ -191,7 +226,6 @@
       outline: none;
       caret-color: var(--gold-star);
     }
-    input:focus { border-color: var(--gold-star); }
 
     .action-buttons { display: flex; gap: 10px; margin-top: 10px; }
     .btn-bet {
@@ -201,17 +235,14 @@
       flex: 2; padding: 15px; background: var(--red-danger); color: white; border: none; border-radius: 4px; cursor: pointer; font-family: 'Press Start 2P', sans-serif; font-size: 14px; display: none;
       box-shadow: 0 0 10px rgba(255, 69, 0, 0.5);
     }
-    .btn-cashout:hover { filter: brightness(1.2); }
 
     #history-container {
       max-height: 100px; overflow-y: auto; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 4px; color: #aaa; font-size: 12px; margin-top: 10px;
       border: 1px solid #332211;
     }
     .hist-item { margin: 2px 0; padding: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; }
-    .crash-hist { color: var(--red-danger); }
-    .win-hist { color: var(--gold-star); }
 
-    /* --- ИНВЕНТАРЬ --- */
+    /* === ИНВЕНТАРЬ (ПОП-АП) === */
     #inventory-screen {
       display: none;
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -252,46 +283,34 @@
       width: 40px; height: 40px;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23FFD700' d='M16 2L18 6H22L24 10H28L30 14H32L30 18H26L24 22H20L18 26H14L12 22H8L6 18H4L2 14H0L2 10H4L6 6H10L12 2H16Z'/%3E%3Cpath fill='%23000' d='M14 8L16 10L18 8L16 12Z'/%3E%3C/svg%3E");
       background-size: contain;
-      filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.8));
     }
     .item-price {
       color: var(--gold-star);
-      font-weight: bold;
-      font-size: 14px;
-    }
-    .btn-sell {
-      background: var(--red-danger);
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      cursor: pointer;
-      font-family: 'Press Start 2P', sans-serif;
       font-size: 12px;
       margin-top: 5px;
     }
-    .btn-close-inv {
-      position: absolute; top: 20px; right: 20px;
-      background: transparent; color: var(--gold-star); border: 2px solid var(--gold-star); cursor: pointer; padding: 10px; font-family: 'Press Start 2P';
+    .close-inv-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: transparent;
+      border: 2px solid var(--gold-star);
+      color: var(--gold-star);
+      cursor: pointer;
+      font-family: 'Press Start 2P', sans-serif;
+      text-transform: uppercase;
     }
   </style>
-</head>
-<body>
+  <body>
+    <!-- Фон пыли -->
+    <div class="dust-layer">
+      <div class="dust-cloud" style="animation-delay: 0s;"></div>
+      <div class="dust-cloud" style="animation-delay: -10s;"></div>
+      <div class="dust-cloud" style="animation-delay: -5s;"></div>
+    </div>
 
-  <!-- ЭКРАН 1 -->
-  <div id="start-screen">
-    <h1>RODEO CRASH</h1>
-    <p class="sub">Лови момент, продавай трофеи</p>
-    <button id="enter-btn" class="cowboy-btn">На арену</button>
-  </div>
-
-  <!-- ЭКРАН 2 -->
-  <div id="game-screen">
-    <div id="game-panel">
-      <div class="top-bar">
-        <div>Баланс</div>
-        <div class="balance-box"><span class="star-icon"></span><span id="balance">1000</span> <span style="font-size:12px;">STARS</span></div>
-      </div>
-
-      <div id="flight-zone">
-        <div class="rail-line"></div>
-        <div class="trail" id
+    <!-- ЭКРАН 1: МЕНЮ -->
+    <div id="start-screen">
+      <h1 class="logo">RODEO<br>CRASH</h1>
+      
+      <!-- Кнопка Инвентарь (Сверху) -->
+      <
