@@ -3,7 +3,7 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { margin: 0; padding: 0; font-family: sans-serif; overflow: hidden; }
+    body { margin: 0; padding: 0; font-family: sans-serif; overflow: hidden; background: #fff; }
 
     /* ЭКРАН 1: ГЛАВНАЯ */
     #start-screen {
@@ -30,28 +30,59 @@
       position: relative; width: 320px; height: 480px;
       border: 2px solid #ddd; background: #fff; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.15);
     }
+
+    /* История полётов */
+    #history-container {
+      width: 100%; padding: 10px; background: #f8f9fa; border-bottom: 1px solid #eee;
+      max-height: 120px; overflow-y: auto; font-size: 14px; color: #555;
+    }
+    .history-item { margin: 4px 0; padding: 6px 10px; background: #fff; border-radius: 6px; border-left: 4px solid #007bff; }
+    
     .btn {
       padding: 12px 24px; font-size: 16px; cursor: pointer; border: none; margin-top: 8px;
       border-radius: 8px; transition: transform 0.05s;
     }
     .btn:active { transform: scale(0.96); }
-    #crash-btn { background: #ff4d4d; color: white; }
     #bet-btn { background: #333; color: white; }
     #cashout-btn { background: #28a745; color: white; display: none; }
+
     #status { text-align: center; margin-bottom: 10px; font-weight: bold; color: #333; }
-    #multiplier { font-size: 28px; color: #007bff; font-weight: bold; }
     
-    /* Поле ввода ставки */
+    /* Блок с множителем и выигрышем */
+    #multiplier-block {
+      font-size: 42px; color: #007bff; font-weight: bold; margin-bottom: 15px;
+      text-align: center; min-height: 60px;
+    }
+    .win-message {
+      color: #28a745 !important; font-size: 36px !important;
+      animation: pulse 1s infinite alternate;
+    }
+    @keyframes pulse { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
+
     #bet-input {
       width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #ccc; border-radius: 8px;
       font-size: 16px; box-sizing: border-box; text-align: right;
     }
 
-    .rocket {
-      position: absolute; left: 140px; bottom: 10px; width: 40px; height: 60px;
-      background: linear-gradient(#fff, #ddd); border-radius: 6px;
-      box-shadow: 0 0 10px rgba(255,100,100,0.5); transition: bottom 0.05s linear;
+    /* Смайлик денег с крыльями */
+    .money-plane {
+      position: absolute; left: 140px; bottom: 10px; width: 40px; height: 40px;
+      background: radial-gradient(circle at 20px 20px, #ffd700 0%, #d4af37 100%);
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+      display: flex; align-items: center; justify-content: center;
+      color: #2c1e3e; font-size: 22px; font-weight: bold;
     }
+    .money-plane::before, .money-plane::after {
+      content: ""; position: absolute;
+      width: 30px; height: 20px;
+      background: rgba(255,255,255,0.7); border-radius: 15px;
+      filter: drop-shadow(0 0 5px rgba(255,255,255,0.8));
+      transform-origin: center bottom;
+    }
+    .money-plane::before { left: -18px; transform: rotate(-30deg); }
+    .money-plane::after { right: -18px; transform: rotate(30deg); }
+
     .explosion {
       position: absolute; width: 60px; height: 60px; border-radius: 50%;
       pointer-events: none; animation: pop 0.4s forwards;
@@ -72,18 +103,24 @@
 
   <!-- ЭКРАН 2 -->
   <div id="game-screen">
+    <!-- История полётов -->
+    <div id="history-container">
+      <strong>История полётов:</strong>
+      <div id="history-list"></div>
+    </div>
+
     <div id="game">
       <div id="status">Баланс: <span id="balance">1000</span> ₽</div>
-      <div id="multiplier">x1.00</div>
       
-      <!-- Поле ввода ставки -->
-      <input type="number" id="bet-input" placeholder="Сумма ставки" min="1">
+      <!-- Сюда выводится множитель и надпись WIN -->
+      <div id="multiplier-block">x1.00</div>
+      
+      <input type="number" id="bet-input" placeholder="Ставка (макс. 2000)" min="1" max="2000">
       
       <button id="bet-btn" class="btn">Принять ставку</button>
       <button id="cashout-btn" class="btn">Забрать</button>
-      <button id="crash-btn" class="btn" style="display:none;">Краш</button>
       
-      <div class="rocket" id="rocket"></div>
+      <div class="money-plane" id="plane">$</div>
     </div>
   </div>
 
@@ -93,22 +130,25 @@
     const enterBtn = document.getElementById('enter-btn');
 
     const balanceEl = document.getElementById('balance');
-    const multEl = document.getElementById('multiplier');
+    const multBlock = document.getElementById('multiplier-block');
     const betInput = document.getElementById('bet-input');
-    const rocket = document.getElementById('rocket');
-    const crashBtn = document.getElementById('crash-btn');
+    const plane = document.getElementById('plane');
     const betBtn = document.getElementById('bet-btn');
     const cashoutBtn = document.getElementById('cashout-btn');
+    const historyList = document.getElementById('history-list');
 
     let balance = 1000;
     let bet = 0;
-    let multiplier = 1.00;
+    let multiplier = 1.0;
     let isRunning = false;
-    let rocketPos = 10;
-    let speed = 4;
+    
+    // Скорость движения (px за кадр)
+    let speed = 2;
+    const speedBoost = 1.10; // +10% при переходе через целое число
+    
+    let planePos = 10;
     let frameId;
 
-    // Переход на игру
     enterBtn.onclick = () => {
       startScreen.style.display = 'none';
       gameScreen.style.display = 'flex';
@@ -117,47 +157,55 @@
     function startGame() {
       if (!isRunning && bet > 0) {
         isRunning = true;
-        rocketPos = 10;
-        multiplier = 1.00;
-        multEl.textContent = 'x' + multiplier.toFixed(2);
+        planePos = 10;
+        multiplier = 1.0;
+        speed = 2; // Сброс скорости для нового раунда
+        multBlock.textContent = 'x' + multiplier.toFixed(1);
+        multBlock.className = ''; // убираем класс win
         cashoutBtn.style.display = 'block';
-        betBtn.style.display = 'none'; // скрываем «Принять ставку»
-        betInput.disabled = true;      // блокируем ввод во время игры
-        crashBtn.style.display = 'none';
-        animateRocket();
+        betBtn.style.display = 'none';
+        betInput.disabled = true;
+        animatePlane();
       }
     }
 
-    function animateRocket() {
-      rocketPos += speed;
-      rocket.style.bottom = rocketPos + 'px';
+    function animatePlane() {
+      // Движение самолёта
+      planePos += speed;
+      plane.style.bottom = planePos + 'px';
 
-      multiplier += 0.1;
-      multEl.textContent = 'x' + multiplier.toFixed(1);
+      // Плавный рост множителя: шаг 0.1
+      multiplier += 0.0033; 
+      multBlock.textContent = 'x' + multiplier.toFixed(1);
 
-      // Логика шансов краша
-      const chance = Math.random(); // число от 0 до 1
-      let crashHappens = false;
+      const currentWhole = Math.floor(multiplier);
+      const prevWhole = Math.floor(multiplier - 0.0033);
 
-      if (multiplier <= 3.0) {
-        // До 3.0 — краш в 30% случаев
-        if (chance < 0.30) crashHappens = true;
-      } else {
-        // Выше 3.0 — краш в 20% случаев
-        if (chance < 0.20) crashHappens = true;
+      // Если мы перешли через целое число (например, было 1.9, стало 2.0)
+      if (currentWhole > prevWhole && currentWhole >= 2) {
+        // Ускоряем самолёт на 10%
+        speed *= speedBoost;
       }
 
-      if (crashHappens) {
+      // --- ГЛАВНОЕ ИЗМЕНЕНИЕ: КРАШ В ЛЮБОЙ МОМЕНТ ---
+      // Шанс 10% проверяется КАЖДЫЙ кадр (каждую долю секунды)
+      const chance = Math.random();
+      if (chance < 0.10) { // 10% шанс разбиться прямо сейчас
         stopGame(true);
-      } else if (rocketPos >= 450) {
-        // Если долетел до верха без краша — победа
-        stopGame(false);
-      } else {
-        frameId = requestAnimationFrame(animateRocket);
+        return;
       }
+      // ----------------------------------------------
+
+      // Если долетел до верха — победа (автоматический кэш-аут)
+      if (planePos >= 450) {
+        stopGame(false, true); // второй параметр: авто-победа
+        return;
+      }
+
+      frameId = requestAnimationFrame(animatePlane);
     }
 
-    function stopGame(crashed) {
+    function stopGame(crashed, autoWin = false) {
       cancelAnimationFrame(frameId);
       isRunning = false;
       cashoutBtn.style.display = 'none';
@@ -165,18 +213,37 @@
       betInput.disabled = false;
       betInput.value = '';
 
+      const finalMult = multiplier.toFixed(1);
+      const displayMult = parseFloat(finalMult);
+
       if (crashed) {
         balance -= bet;
         balanceEl.textContent = balance.toFixed(0);
-        createExplosion(rocket.offsetLeft + 20, rocket.offsetTop + 30);
-        rocket.style.bottom = '10px';
+        createExplosion(plane.offsetLeft + 20, plane.offsetTop + 20);
+        plane.style.bottom = '10px';
+        addToHistory('Краш на x' + finalMult);
       } else {
-        const win = bet * multiplier;
-        balance += win;
+        const winAmount = bet * displayMult;
+        balance += winAmount;
         balanceEl.textContent = balance.toFixed(0);
+        
+        // Показываем WIN!!!
+        multBlock.innerHTML = `x${finalMult}<br><span class="win-message">WIN!!!</span>`;
+        
+        plane.style.bottom = '10px'; // возвращаем вниз
+        addToHistory(autoWin ? 'Долетел: x' + finalMult : 'Кэш-аут: x' + finalMult);
       }
       bet = 0;
-      multEl.textContent = 'x1.00';
+    }
+
+    function addToHistory(text) {
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      item.textContent = text;
+      historyList.prepend(item);
+      while (historyList.children.length > 10) {
+        historyList.lastChild.remove();
+      }
     }
 
     function createExplosion(x, y) {
@@ -192,7 +259,11 @@
     betBtn.onclick = () => {
       const inputValue = parseFloat(betInput.value);
       if (!inputValue || inputValue <= 0) {
-        alert('Введите корректную сумму');
+        alert('Введите сумму ставки');
+        return;
+      }
+      if (inputValue > 2000) {
+        alert('Максимальная ставка — 2000 ₽');
         return;
       }
       if (balance >= inputValue) {
@@ -207,9 +278,6 @@
 
     cashoutBtn.onclick = () => {
       if (isRunning) {
-        const win = bet * multiplier;
-        balance += win;
-        balanceEl.textContent = balance.toFixed(0);
         stopGame(false);
       }
     };
