@@ -314,3 +314,232 @@
       
       <!-- Кнопка Инвентарь (Сверху) -->
       <
+      <!-- Кнопка Инвентарь (Сверху) -->
+      <button id="top-inv-btn">ИНВЕНТАРЬ</button>
+
+      <!-- Кнопка CRASH (Справа по центру) -->
+      <div id="crash-trigger-wrapper">
+        <button id="right-crash-btn">CRASH</button>
+      </div>
+    </div>
+
+    <!-- ЭКРАН 2: ИГРА -->
+    <div id="game-screen">
+      <div id="game-panel">
+        <div class="top-bar">
+          <span class="balance-box">Баланс: <span id="balance-display">1000</span> <span class="star-icon"></span></span>
+          <button id="back-to-menu-btn" style="background:transparent; border:1px solid #554433; color:#fff; padding:5px 10px; cursor:pointer; font-family:'Press Start 2P', sans-serif;">МЕНЮ</button>
+        </div>
+
+        <div id="multiplier-block">x1.00</div>
+
+        <div id="flight-zone">
+          <div class="rail-line"></div>
+          <div class="trail" id="trail"></div>
+          <div class="bull" id="bull"></div>
+        </div>
+
+        <input type="number" id="bet-input" placeholder="СТАВКА" min="1">
+
+        <div class="action-buttons">
+          <button class="btn-bet" id="place-bet-btn">СТАВИТЬ</button>
+          <button class="btn-cashout" id="cashout-btn">ЗАБРАТЬ</button>
+        </div>
+
+        <div id="history-container">
+          <div class="hist-item">Игра началась...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ИНВЕНТАРЬ (ПОП-АП) -->
+    <div id="inventory-screen">
+      <div class="inv-header">МОЙ ИНВЕНТАРЬ</div>
+      <div class="inventory-grid">
+        <!-- Карточка бычка -->
+        <div class="item-card">
+          <div class="item-bull-img"></div>
+          <span>Золотой бык</span>
+          <span class="item-price">5000 ★</span>
+          <button onclick="sellItem()" style="margin-top:5px; background:#332211; color:white; border:none; padding:5px; cursor:pointer; font-family:'Press Start 2P', sans-serif; font-size:12px;">ПРОДАТЬ</button>
+        </div>
+        <!-- Пустые карточки для вида -->
+        <div class="item-card" style="opacity:0.3;"><div class="item-bull-img" style="filter:grayscale(1)"></div><span>Заблокировано</span></div>
+        <div class="item-card" style="opacity:0.3;"><div class="item-bull-img" style="filter:grayscale(1)"></div><span>Заблокировано</span></div>
+        <div class="item-card" style="opacity:0.3;"><div class="item-bull-img" style="filter:grayscale(1)"></div><span>Заблокировано</span></div>
+        <div class="item-card" style="opacity:0.3;"><div class="item-bull-img" style="filter:grayscale(1)"></div><span>Заблокировано</span></div>
+        <div class="item-card" style="opacity:0.3;"><div class="item-bull-img" style="filter:grayscale(1)"></div><span>Заблокировано</span></div>
+      </div>
+      <button class="close-inv-btn" onclick="closeInventory()">ЗАКРЫТЬ</button>
+    </div>
+  </body>
+
+  <script>
+    // --- ПЕРЕМЕННЫЕ ---
+    let balance = 1000;
+    let currentBet = 0;
+    let isPlaying = false;
+    let multiplier = 1.00;
+    let animationId;
+    
+    const balanceDisplay = document.getElementById('balance-display');
+    const multiplierBlock = document.getElementById('multiplier-block');
+    const bull = document.getElementById('bull');
+    const trail = document.getElementById('trail');
+    const betInput = document.getElementById('bet-input');
+    const placeBetBtn = document.getElementById('place-bet-btn');
+    const cashoutBtn = document.getElementById('cashout-btn');
+    const historyContainer = document.getElementById('history-container');
+    
+    // Экраны
+    const startScreen = document.getElementById('start-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const inventoryScreen = document.getElementById('inventory-screen');
+
+    // Кнопки
+    document.getElementById('top-inv-btn').addEventListener('click', openInventory);
+    document.getElementById('back-to-menu-btn').addEventListener('click', goToMenu);
+    document.getElementById('right-crash-btn').addEventListener('click', forceCrash);
+
+    // --- ФУНКЦИИ ЭКРАНОВ ---
+    function openInventory() {
+      inventoryScreen.style.display = 'flex';
+    }
+    function closeInventory() {
+      inventoryScreen.style.display = 'none';
+    }
+    function goToMenu() {
+      stopGame();
+      gameScreen.style.display = 'none';
+      startScreen.style.display = 'flex';
+    }
+
+    function sellItem() {
+      balance += 5000;
+      updateBalance();
+      addHistory("Продано: Золотой бык (+5000)");
+      alert("Вы продали быка за 5000 звезд!");
+      closeInventory();
+    }
+
+    // --- ЛОГИКА ИГРЫ ---
+    placeBetBtn.addEventListener('click', () => {
+      const bet = parseFloat(betInput.value);
+      if (!bet || bet <= 0) {
+        alert("Введите корректную ставку!");
+        return;
+      }
+      if (bet > balance) {
+        alert("Недостаточно средств!");
+        return;
+      }
+
+      currentBet = bet;
+      balance -= currentBet;
+      updateBalance();
+      
+      isPlaying = true;
+      multiplier = 1.00;
+      multiplierBlock.textContent = "x1.00";
+      
+      trail.style.width = "0px";
+      bull.style.left = "20px";
+      cashoutBtn.style.display = "block";
+      betInput.disabled = true;
+      placeBetBtn.disabled = true;
+
+      startGameLoop();
+      addHistory(`Ставка: ${currentBet}. Игра началась.`);
+    });
+
+    cashoutBtn.addEventListener('click', cashout);
+
+    function cashout() {
+      const winnings = currentBet * multiplier;
+      balance += winnings;
+      updateBalance();
+      stopGame();
+      addHistory(`КЭШАУТ: Выигрыш ${winnings.toFixed(2)}`);
+      alert(`Вы забрали: ${winnings.toFixed(2)}!`);
+    }
+
+    function forceCrash() {
+      if (isPlaying) crashGame();
+    }
+
+    function crashGame() {
+      isPlaying = false;
+      stopGameLoop();
+      cashoutBtn.style.display = "none";
+      betInput.disabled = false;
+      placeBetBtn.disabled = false;
+      addHistory("CRASH! Ставка сгорела.");
+      alert("CRASH! Ваша ставка сгорела!");
+    }
+
+    function startGameLoop() {
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function stopGameLoop() {
+      cancelAnimationFrame(animationId);
+    }
+
+    function stopGame() {
+      isPlaying = false;
+      stopGameLoop();
+      cashoutBtn.style.display = "none";
+      betInput.disabled = false;
+      placeBetBtn.disabled = false;
+    }
+
+    function animate(timestamp) {
+      if (!isPlaying) return;
+
+      // Двигаем быка
+      const bullRect = bull.getBoundingClientRect();
+      const zoneRect = document.getElementById('flight-zone').getBoundingClientRect();
+      
+      // Вычисляем позицию относительно зоны
+      let progress = (bullRect.left - zoneRect.left) / (zoneRect.width - 50);
+      
+      if (progress > 1) {
+        // Если долетел до конца - это победа (автоматический кэшаут)
+        const winnings = currentBet * multiplier;
+        balance += winnings;
+        updateBalance();
+        stopGame();
+        addHistory(`ПОБЕДА! Выигрыш: ${winnings.toFixed(2)}`);
+        alert(`ПОБЕДА! Множитель x${multiplier.toFixed(2)}. Выигрыш: ${winnings.toFixed(2)}`);
+        return;
+      }
+
+      // Увеличиваем множитель
+      multiplier += 0.02; // Скорость роста
+      multiplierBlock.textContent = `x${multiplier.toFixed(2)}`;
+
+      // Двигаем быка и хвост
+      const newLeft = 20 + (progress * (zoneRect.width - 50));
+      bull.style.left = `${newLeft}px`;
+      trail.style.width = `${newLeft - 20}px`;
+
+      requestAnimationFrame(animate);
+    }
+
+    // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+    function updateBalance() {
+      balanceDisplay.textContent = balance;
+    }
+
+    function addHistory(text) {
+      const div = document.createElement('div');
+      div.className = 'hist-item';
+      div.textContent = text;
+      historyContainer.prepend(div);
+      // Удаляем старые записи если их слишком много
+      while (historyContainer.children.length > 10) {
+        historyContainer.lastChild.remove();
+      }
+    }
+  </script>
+</html>
