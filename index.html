@@ -2,129 +2,156 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rodeo Crash - Simple</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>VIRUS CRASH: RODEO EDITION</title>
+  <!-- Библиотека для работы с Telegram (делает кнопки родными) -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    /* Базовые настройки */
+    :root {
+      --bg-color: #050505;
+      --acid-green: #00ff41; /* Фирменный цвет Virus Game */
+      --neon-yellow: #ffff00;
+      --panel-bg: #0a0a0a;
+      --border-glow: 0 0 15px rgba(0, 255, 65, 0.5);
+      --text-color: #ffffff;
+    }
+
     body {
       margin: 0;
       padding: 0;
-      background-color: #2b2b2b;
-      font-family: 'Courier New', Courier, monospace; /* Шрифт как в старых играх */
-      color: white;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Courier New', Courier, monospace; /* Пиксельный шрифт */
       overflow: hidden;
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
     }
 
-    /* Игровая панель */
-    .game-container {
-      width: 400px;
-      height: 500px;
-      border: 4px solid #555;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    /* --- ГЛАВНЫЙ ЭКРАН --- */
+    .app-container {
+      width: 100%;
+      max-width: 420px;
+      height: 90vh;
+      background: var(--panel-bg);
+      border: 2px solid #333;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
       position: relative;
-      background: #1a1a1a;
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding-bottom: 20px;
     }
 
-    /* Верхняя панель (баланс и ставка) */
-    .top-panel {
-      padding: 15px;
+    /* Верхняя панель: Баланс + Инвентарь */
+    .top-bar {
       width: 100%;
-      border-bottom: 2px solid #444;
-      text-align: right;
+      padding: 15px 20px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       box-sizing: border-box;
     }
-    .stat-row {
+    .balance-box {
       font-size: 18px;
-      margin-bottom: 5px;
       text-transform: uppercase;
+      color: var(--acid-green);
+      font-weight: bold;
+      text-shadow: 0 0 5px var(--acid-green);
     }
-    .balance-val { color: #ffd700; font-weight: bold; }
-    .bet-val { color: #ff4500; font-weight: bold; }
+    .star-icon {
+      display: inline-block;
+      width: 12px; height: 12px;
+      background: #fff;
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      vertical-align: middle;
+    }
+    
+    .inv-btn {
+      background: transparent;
+      border: 1px solid var(--acid-green);
+      color: var(--acid-green);
+      padding: 8px 16px;
+      font-family: inherit;
+      cursor: pointer;
+      text-transform: uppercase;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+    .inv-btn:hover {
+      background: var(--acid-green);
+      color: black;
+      box-shadow: var(--border-glow);
+    }
 
-    /* Зона полета (арена) */
-    #arena {
+    /* --- ЗОНА ИГРЫ --- */
+    #game-zone {
       flex-grow: 1;
       width: 90%;
-      background: #333;
-      border: 2px dashed #555;
+      background: #000;
+      border: 2px dashed #444;
       position: relative;
       overflow: hidden;
       margin-top: 10px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-start;
     }
 
-    /* Пиксельный бык (CSS Sprite) */
-    #bull {
+    /* Пиксельный бык (CSS Art) */
+    .bull-sprite {
       position: absolute;
-      bottom: 10px;
+      bottom: 4px;
       left: 20px;
       width: 32px;
       height: 32px;
-      /* Рисуем быка через CSS градиенты и тени для пиксель-арта */
-      background: 
-        radial-gradient(circle, #fff 2px, transparent 2px) 0 0,
-        radial-gradient(circle, #fff 2px, transparent 2px) 8px 0,
-        radial-gradient(circle, #fff 2px, transparent 2px) 16px 0,
-        radial-gradient(circle, #fff 2px, transparent 2px) 24px 0,
-        
-        radial-gradient(circle, #fff 2px, transparent 2px) 0 8px,
-        radial-gradient(circle, #ff4500 2px, transparent 2px) 8px 8px, /* Пятно */
-        radial-gradient(circle, #fff 2px, transparent 2px) 16px 8px,
-        radial-gradient(circle, #fff 2px, transparent 2px) 24px 8px,
-
-        radial-gradient(circle, #fff 2px, transparent 2px) 0 16px,
-        radial-gradient(circle, #fff 2px, transparent 2px) 8px 16px,
-        radial-gradient(circle, #fff 2px, transparent 2px) 16px 16px,
-        radial-gradient(circle, #fff 2px, transparent 2px) 24px 16px,
-
-        radial-gradient(circle, #fff 2px, transparent 2px) 0 24px,
-        radial-gradient(circle, #fff 2px, transparent 2px) 8px 24px,
-        radial-gradient(circle, #fff 2px, transparent 2px) 16px 24px,
-        radial-gradient(circle, #fff 2px, transparent 2px) 24px 24px;
-        
-      background-size: 32px 32px;
-      filter: drop-shadow(0 0 5px #ff4500);
+      /* Рисуем быка из квадратов */
+      background-image: 
+        linear-gradient(#00ff41, #00ff41), /* Тело */
+        linear-gradient(#fff, #fff),       /* Рог 1 */
+        linear-gradient(#fff, #fff);       /* Рог 2 */
+      background-size: 16px 16px, 8px 8px, 8px 8px;
+      background-position: 0 0, 0 -8px, 16px -8px;
+      filter: drop-shadow(0 0 8px var(--acid-green));
       transform-origin: bottom center;
-      animation: bounce 0.5s infinite alternate;
+      animation: idleShake 0.3s infinite alternate;
     }
 
-    @keyframes bounce {
+    @keyframes idleShake {
       from { transform: scaleY(1); }
-      to { transform: scaleY(0.9); }
+      to { transform: scaleY(0.95); }
     }
 
-    /* Линия старта */
     .start-line {
       position: absolute;
       bottom: 0; left: 20px; right: 0;
-      height: 2px;
-      background: red;
+      height: 4px;
+      background: var(--acid-green);
+      box-shadow: 0 0 10px var(--acid-green);
     }
 
     /* Большой множитель */
     #multiplier-display {
       font-size: 60px;
       font-weight: bold;
-      color: #ffd700;
-      text-shadow: 2px 2px 0 #000;
-      margin-top: 20px;
+      color: var(--neon-yellow);
+      text-shadow: 2px 2px 0 #000, 0 0 10px var(--neon-yellow);
+      margin-top: 10px;
       line-height: 1;
+      z-index: 10;
+      pointer-events: none;
     }
 
-    /* Кнопки */
+    /* Кнопки управления */
     .controls {
-      width: 80%;
+      width: 90%;
       display: flex;
       gap: 10px;
       margin-top: 20px;
     }
-    button {
+    button.game-btn {
       flex: 1;
       padding: 15px;
       border: none;
@@ -132,184 +159,203 @@
       font-family: inherit;
       font-size: 16px;
       text-transform: uppercase;
+      font-weight: bold;
       transition: 0.2s;
     }
-    .btn-bet { background: #444; color: white; }
-    .btn-cashout { background: #ffd700; color: black; font-weight: bold; }
-    .btn-crash { background: #ff4500; color: white; }
+    .btn-bet { 
+      background: #222; 
+      color: white; 
+      border: 2px solid var(--acid-green);
+    }
+    .btn-cashout { 
+      background: var(--neon-yellow); 
+      color: black; 
+    }
+    .btn-disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
 
-    button:hover { transform: scale(1.05); }
+    button:active { transform: scale(0.98); }
 
-    /* Статус игры */
     #status-msg {
       margin-top: 10px;
-      font-size: 14px;
-      min-height: 20px;
+      min-height: 24px;
+      text-align: center;
+      font-weight: bold;
+      text-shadow: 0 0 5px black;
     }
-    .win { color: green; }
-    .loss { color: red; }
+    .win-msg { color: #0f0; }
+    .loss-msg { color: red; text-shadow: 0 0 10px red; }
+
+    /* --- ИНВЕНТАРЬ (ПОП-АП) --- */
+    #inventory-modal {
+      display: none; /* Скрыт по умолчанию */
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .inv-header {
+      font-size: 28px;
+      color: var(--acid-green);
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px var(--acid-green);
+    }
+    .inventory-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      max-width: 300px;
+      width: 100%;
+    }
+    .item-card {
+      background: #111;
+      border: 1px solid #444;
+      padding: 10px;
+      border-radius: 4px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+    .item-img {
+      width: 40px; height: 40px;
+      background: linear-gradient(45deg, #00ff41 25%, transparent 25%) 0 0,
+                  linear-gradient(45deg, transparent 75%, #00ff41 75%) 0 0,
+                  linear-gradient(45deg, transparent 75%, #00ff41 75%) -18px 18px,
+                  linear-gradient(45deg, #00ff41 25%, transparent 25%) 18px -18px;
+      background-size: 40px 40px;
+      background-repeat: no-repeat;
+      filter: drop-shadow(0 0 5px var(--acid-green));
+    }
+    .sell-btn {
+      margin-top: 5px;
+      background: transparent;
+      border: 1px solid red;
+      color: red;
+      padding: 5px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .close-inv {
+      margin-top: 20px;
+      padding: 10px 30px;
+      background: #333;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
-  <div class="game-container">
-    <div class="top-panel">
-      <div class="stat-row">Баланс: <span id="balance" class="balance-val">1000</span> ★</div>
-      <div class="stat-row">Ставка: <span id="current-bet" class="bet-val">0</span> ★</div>
+  <!-- Основной интерфейс -->
+  <div class="app-container">
+    <div class="top-bar">
+      <div class="balance-box">Баланс: <span id="balance-display">1000</span> <span class="star-icon"></span></div>
+      <button class="inv-btn" onclick="toggleInventory()">ИНВЕНТАРЬ</button>
     </div>
 
-    <div id="arena">
+    <div id="game-zone">
       <div class="start-line"></div>
-      <div id="bull"></div>
+      <div class="bull-sprite" id="bull"></div>
     </div>
 
     <div id="multiplier-display">x1.00</div>
-    
+
     <div class="controls">
-      <button class="btn-bet" onclick="placeBet()">СТАВИТЬ</button>
-      <button class="btn-cashout" onclick="cashOut()" id="btn-cashout" disabled>ЗАБРАТЬ</button>
+      <button class="game-btn btn-bet" onclick="startGame()">СТАВИТЬ</button>
+      <button class="game-btn btn-cashout" onclick="cashOut()" id="cashout-btn" disabled>ЗАБРАТЬ</button>
     </div>
 
     <div id="status-msg"></div>
   </div>
 
+  <!-- Окно инвентаря -->
+  <div id="inventory-modal">
+    <div class="inv-header">МОЙ ИНВЕНТАРЬ</div>
+    <div class="inventory-grid">
+      <!-- Предмет 1 -->
+      <div class="item-card">
+        <div class="item-img"></div>
+        <span>Золотой бык</span>
+        <span style="color:#aaa; font-size:12px;">x1</span>
+        <button class="sell-btn" onclick="sellItem(500)">ПРОДАТЬ (500★)</button>
+      </div>
+      <!-- Предмет 2 -->
+      <div class="item-card">
+        <div class="item-img" style="filter: sepia(1) hue-rotate(90deg)"></div>
+        <span>Редкий бык</span>
+        <span style="color:#aaa; font-size:12px;">x2</span>
+        <button class="sell-btn" onclick="sellItem(1000)">ПРОДАТЬ (1000★)</button>
+      </div>
+      <!-- Пустой слот -->
+      <div class="item-card" style="opacity:0.3; border: 1px dashed #555;">
+        <span style="color:#555">Пусто</span>
+      </div>
+      <!-- Предмет 3 -->
+      <div class="item-card">
+        <div class="item-img" style="background-color:#ffd700"></div>
+        <span>Монета</span>
+        <span style="color:#aaa; font-size:12px;">x5</span>
+        <button class="sell-btn" onclick="sellItem(50)">ПРОДАТЬ (50★)</button>
+      </div>
+      <!-- Пустые -->
+      <div class="item-card" style="opacity:0.3; border: 1px dashed #555;"><span style="color:#555">Пусто</span></div>
+      <div class="item-card" style="opacity:0.3; border: 1px dashed #555;"><span style="color:#555">Пусто</span></div>
+    </div>
+    <button class="close-inv" onclick="toggleInventory()">ЗАКРЫТЬ</button>
+  </div>
+
   <script>
-    // --- Переменные состояния ---
+    // Инициализация Telegram WebApp
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand(); // Раскрыть на весь экран
+
+    // --- Переменные ---
     let balance = 1000;
     let currentBet = 0;
     let isPlaying = false;
     let multiplier = 1.00;
-    let animationFrameId;
+    let animationId;
     
-    // Элементы DOM
-    const elBalance = document.getElementById('balance');
-    const elBet = document.getElementById('current-bet');
+    // Элементы
+    const elBalance = document.getElementById('balance-display');
     const elMulti = document.getElementById('multiplier-display');
     const elBull = document.getElementById('bull');
-    const btnCashout = document.getElementById('btn-cashout');
+    const btnCashout = document.getElementById('cashout-btn');
     const statusMsg = document.getElementById('status-msg');
+    const invModal = document.getElementById('inventory-modal');
 
-    // Обновление UI
-    function updateUI() {
-      elBalance.textContent = balance;
-      elBet.textContent = currentBet;
-    }
-
-    function setStatus(text, colorClass) {
+    function updateUI() { elBalance.textContent = balance; }
+    function setStatus(text, className) {
       statusMsg.textContent = text;
-      statusMsg.className = 'status-msg ' + (colorClass || '');
+      statusMsg.className = 'status-msg ' + (className || '');
     }
 
-    // --- Логика игры ---
+    // --- УПРАВЛЕНИЕ ИНВЕНТАРЁМ ---
+    function toggleInventory() {
+      invModal.style.display = invModal.style.display === 'flex' ? 'none' : 'flex';
+    }
+    function sellItem(amount) {
+      balance += amount;
+      updateUI();
+      setStatus(`Продано! Получено ${amount} ★`, 'win-msg');
+      // Здесь можно добавить удаление предмета из сетки, но для демо просто начисляем деньги
+      setTimeout(() => setStatus('', ''), 2000);
+    }
 
-    // 1. Поставить ставку
-    function placeBet() {
+    // --- ЛОГИКА ИГРЫ ---
+    function startGame() {
       if (isPlaying) return;
 
       const input = prompt("Введите сумму ставки (минимум 1):");
       const bet = parseInt(input);
 
-      if (!bet || bet < 1) {
-        alert("Некорректная ставка!");
-        return;
-      }
-      if (bet > balance) {
-        alert("Недостаточно средств!");
-        return;
-      }
-
-      // Списываем баланс
-      balance -= bet;
-      currentBet = bet;
-      updateUI();
-
-      // Старт игры
-      isPlaying = true;
-      multiplier = 1.00;
-      elMulti.textContent = "x1.00";
-      
-      // Сброс позиции быка
-      elBull.style.left = "20px";
-      btnCashout.disabled = false;
-      setStatus("Игра началась! Бык мчится...", "");
-      
-      startGameLoop();
-    }
-
-    // 2. Забрать выигрыш
-    function cashOut() {
-      if (!isPlaying) return;
-      
-      const winnings = currentBet * multiplier;
-      balance += winnings;
-      updateUI();
-      
-      stopGame(true, winnings);
-    }
-
-    // 3. Запуск цикла анимации и рандома
-    function startGameLoop() {
-      const startTime = Date.now();
-
-      function animate() {
-        if (!isPlaying) return;
-
-        const elapsed = (Date.now() - startTime) / 1000; // секунды
-        
-        // Расчет множителя: растет линейно
-        multiplier = 1 + (elapsed * 0.4); // +0.4 каждую секунду
-        elMulti.textContent = "x" + multiplier.toFixed(2);
-
-        // --- ЧЕСТНАЯ СИСТЕМА РАНДОМА ---
-        // Вероятность краша растет со временем.
-        // Формула: P = 1 - e^(-k * t). Чем дольше игра, тем выше шанс.
-        const crashChance = 1 - Math.exp(-0.8 * elapsed); 
-        
-        if (Math.random() < crashChance) {
-          crashGame();
-          return;
-        }
-
-        // Движение быка (простая линейная интерполяция до конца арены)
-        const arenaWidth = document.getElementById('arena').offsetWidth;
-        const bullWidth = 32;
-        const maxLeft = arenaWidth - bullWidth - 20;
-        
-        // Бык доезжает за ~5 секунд (подстроено под скорость роста множителя)
-        const progress = Math.min(elapsed / 5, 1); 
-        const newLeft = 20 + (maxLeft * progress);
-        
-        elBull.style.left = newLeft + "px";
-
-        animationFrameId = requestAnimationFrame(animate);
-      }
-      animate();
-    }
-
-    // Остановка игры
-    function stopGame(won, amount) {
-      isPlaying = false;
-      cancelAnimationFrame(animationFrameId);
-      btnCashout.disabled = true;
-      
-      if (won) {
-        setStatus(`ПОБЕДА! Вы выиграли ${amount.toFixed(0)} ★`, "win");
-      } else {
-        setStatus("CRASH! Ставка сгорела.", "loss");
-      }
-    }
-
-    // Обработка краша
-    function crashGame() {
-      // Бык врезается в стену (анимация удара)
-      elBull.style.transform = "rotate(45deg) scale(0.8)";
-      elBull.style.filter = "drop-shadow(0 0 10px red)";
-
-      stopGame(false, 0);
-    }
-
-    // Инициализация
-    updateUI();
-  </script>
-</body>
-</html>
+      if (!bet || bet < 1) { alert("Некорректная ставка!"); return; }
+      if (bet > balance)
