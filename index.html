@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Подключаем телеграм, чтобы игра знала, где она находится -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #2c3e50; /* Тёмно-синий фон */
+        color: white;
+        text-align: center;
+        padding: 20px;
+        margin: 0;
+      }
+      h1 { margin-bottom: 10px; }
+      .balance-box {
+        font-size: 24px;
+        color: #f1c40f; /* Золотой цвет для баланса */
+        margin-bottom: 30px;
+        font-weight: bold;
+      }
+      #reels {
+        font-size: 80px;
+        margin-bottom: 30px;
+        letter-spacing: 15px;
+      }
+      button {
+        padding: 15px 40px;
+        font-size: 18px;
+        background-color: #e74c3c; /* Красный цвет кнопки */
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      button:disabled { background-color: #95a5a6; } /* Серая кнопка когда крутится */
+      #message { margin-top: 20px; font-size: 16px; }
+    </style>
+  </head>
+  <body>
+    <h1>🎰 Игровой автомат</h1>
+    <div class="balance-box">Баланс: <span id="balance">1000</span> фишек</div>
+    
+    <div id="reels">🍒 🍋 🍇</div>
+    
+    <button id="spinBtn">КРУТИТЬ</button>
+    <p id="message"></p>
+
+    <script>
+      // 1. Инициализируем телеграм
+      const tg = window.Telegram.WebApp;
+      tg.ready();
+      tg.expand(); // Раскрыть на весь экран
+
+      let balance = 1000; // Стартовый баланс
+      const balanceEl = document.getElementById('balance');
+      const reelsEl = document.getElementById('reels');
+      const messageEl = document.getElementById('message');
+      const spinBtn = document.getElementById('spinBtn');
+
+      spinBtn.addEventListener('click', () => {
+        if (balance < 20) {
+          messageEl.innerText = "Не хватает фишек! Начни заново (обнови страницу).";
+          messageEl.style.color = "red";
+          return;
+        }
+
+        spinBtn.disabled = true; // Блокируем кнопку
+        messageEl.innerText = "Крутится...";
+        messageEl.style.color = "white";
+
+        // 2. Генерируем случайные фрукты
+        const symbols = ['🍒', '🍋', '🍇', '💎', '7️⃣'];
+        
+        // Запускаем анимацию (просто меняем символы быстро)
+        let spins = 0;
+        const interval = setInterval(() => {
+          const r1 = symbols[Math.floor(Math.random() * symbols.length)];
+          const r2 = symbols[Math.floor(Math.random() * symbols.length)];
+          const r3 = symbols[Math.floor(Math.random() * symbols.length)];
+          reelsEl.innerText = `${r1} ${r2} ${r3}`;
+          spins++;
+          if (spins > 20) clearInterval(interval); // Крутим 20 раз и останавливаем
+        }, 50);
+
+        // 3. Через 1 секунду показываем результат
+        setTimeout(() => {
+          spinBtn.disabled = false;
+          
+          // Получаем финальные значения
+          const finalSymbols = reelsEl.innerText.split(' ');
+          const isWin = finalSymbols[0] === finalSymbols[1] && finalSymbols[1] === finalSymbols[2];
+
+          if (isWin) {
+            const winAmount = Math.floor(Math.random() * 200) + 50;
+            balance += winAmount;
+            messageEl.innerText = `🎉 ДЖЕКПОТ! Ты выиграл ${winAmount} фишек!`;
+            messageEl.style.color = "#2ecc71"; // Зелёный
+          } else {
+            balance -= 20;
+            messageEl.innerText = `😕 Не повезло. Минус 20 фишек.`;
+            messageEl.style.color = "#e74c3c"; // Красный
+          }
+
+          balanceEl.innerText = balance;
+          
+          // Если баланс упал ниже 0, сбрасываем до 1000 (бесконечная валюта)
+          if (balance <= 0) {
+             balance = 1000;
+             balanceEl.innerText = balance;
+             messageEl.innerText = "Баланс обнулился, но тебе дали ещё 1000 фишек! Играй дальше!";
+             messageEl.style.color = "gold";
+          }
+        }, 1050); // 1000 мс анимация + 50 мс запас
+      });
+    </script>
+  </body>
+</html>
